@@ -39,6 +39,7 @@ for i in 0..<args.count - 1 {
     }
 }
 
+
 for i in 0..<args.count {
     if args[i] == "x" || args[i] == "/" || args[i] == "%" {
         if args[i+1] == "x" || args[i+1] == "/" || args[i+1] == "%" {
@@ -50,14 +51,29 @@ for i in 0..<args.count {
         switch args[i] {
             case "x":
                 if let prev = prev, let next = next {
+                    let result = prev.multipliedReportingOverflow(by: next)
+                    if result.overflow {
+                        print("Multiplication error")
+                        exit(1)
+                    }
                     total = prev * next
                 }
             case "/":
                 if let prev = prev, let next = next {
+                    let result = prev.dividedReportingOverflow(by: next)
+                    if result.overflow {
+                        print("Division error")
+                        exit(1)
+                    }
                     total = prev / next
                 }
             case "%":
                 if let prev = prev, let next = next {
+                    let result = prev.remainderReportingOverflow(dividingBy: next)
+                    if result.overflow {
+                        print("Modulos error")
+                        exit(1)
+                    }
                     total = prev % next
                 }
             default:
@@ -71,6 +87,7 @@ for i in 0..<args.count {
     }
 }
 
+
 for i in 0..<args.count {
     if args[i] == "+" || args[i] == "-" {
         let prev = Int(args[i-1])
@@ -79,14 +96,24 @@ for i in 0..<args.count {
         switch args[i] {
         case "+":
             if let prev = prev, let next = next {
+                let result = prev.addingReportingOverflow(next)
+                if result.overflow {
+                    print("Addition error")
+                    exit(1)
+                }
                 total = prev + next
             }
         case "-":
             if let prev = prev, let next = next {
+                let result = prev.subtractingReportingOverflow(next)
+                if result.overflow {
+                    print("Substraction error")
+                    exit(1)
+                }
                 total = prev - next
             }
         default:
-            exit(1);
+            exit(1)
         }
         if let total = total {
             args[i+1] = String(total)
@@ -96,4 +123,6 @@ for i in 0..<args.count {
     }
 }
 
-print(Int(args[args.count-1])!)
+
+let result = Int(args[args.count-1])!
+print(result)
