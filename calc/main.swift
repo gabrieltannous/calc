@@ -8,121 +8,36 @@
 
 import Foundation
 
+// Gets all the arguments passed
 var args = ProcessInfo.processInfo.arguments
-args.removeFirst() // remove the name of the program
+// Remove the name of the program
+args.removeFirst()
 
-func printArgs() {
-    for i in args {
-        print(i, terminator: " ")
-    }
-    print("")
+// Calls the functions to perform the calculation (Checking the equation and calculating)
+func calculate(equation: inout [String]) throws {
+    try inputHandler().checkEquation(equation: equation)
+    try calculator().calculateHighOperators(equation: &equation)
+    try calculator().calculateLowOperators(equation: &equation)
+    let result = Int(equation[equation.count-1])!
+    print(result)
 }
 
-let acceptableCharacters = ["x", "/", "%", "(", ")", "+", "-"]
-
-for i in args {
-    if Int(i) == nil {
-        if !acceptableCharacters.contains(i) {
-            print("You have entered an invalid character")
-            exit(1)
-        }
-    }
+// Calls the above function and catch all errors thrown in this project
+do {
+    try calculate(equation: &args)
+} catch calculatorError.invalidInput(let position) {
+    print("Invalid input entered at position: \(position)")
+    exit(2)
+} catch calculatorError.invalidOperator(let position) {
+    print("Invalid operator entered at position: \(position)")
+    exit(3)
+} catch calculatorError.consecutiveNumbers(let position) {
+    print("Consecutive numbers entered at position: \(position)")
+    exit(2)
+} catch calculatorError.consecutiveOperators(let position) {
+    print("Consecutive operators entered at position: \(position)")
+    exit(2)
+} catch calculatorError.overflow {
+    print("Overflow error (result exceeds the limits of Int)")
+    exit(3)
 }
-
-for i in 0..<args.count - 1 {
-    let num1 = Int(args[i])
-    if num1 != nil {
-        let num2 = Int(args[i+1])
-        if num2 != nil {
-            exit(1)
-        }
-    }
-}
-
-
-for i in 0..<args.count {
-    if args[i] == "x" || args[i] == "/" || args[i] == "%" {
-        if args[i+1] == "x" || args[i+1] == "/" || args[i+1] == "%" {
-            exit(1)
-        }
-        let prev = Int(args[i-1])
-        let next = Int(args[i+1])
-        var total = prev
-        switch args[i] {
-            case "x":
-                if let prev = prev, let next = next {
-                    let result = prev.multipliedReportingOverflow(by: next)
-                    if result.overflow {
-                        print("Multiplication error")
-                        exit(1)
-                    }
-                    total = prev * next
-                }
-            case "/":
-                if let prev = prev, let next = next {
-                    let result = prev.dividedReportingOverflow(by: next)
-                    if result.overflow {
-                        print("Division error")
-                        exit(1)
-                    }
-                    total = prev / next
-                }
-            case "%":
-                if let prev = prev, let next = next {
-                    let result = prev.remainderReportingOverflow(dividingBy: next)
-                    if result.overflow {
-                        print("Modulos error")
-                        exit(1)
-                    }
-                    total = prev % next
-                }
-            default:
-                exit(1);
-        }
-        if let total = total {
-            args[i+1] = String(total)
-            args[i] = "+"
-            args[i-1] = "0"
-        }
-    }
-}
-
-
-for i in 0..<args.count {
-    if args[i] == "+" || args[i] == "-" {
-        let prev = Int(args[i-1])
-        let next = Int(args[i+1])
-        var total = prev
-        switch args[i] {
-        case "+":
-            if let prev = prev, let next = next {
-                let result = prev.addingReportingOverflow(next)
-                if result.overflow {
-                    print("Addition error")
-                    exit(1)
-                }
-                total = prev + next
-            }
-        case "-":
-            if let prev = prev, let next = next {
-                let result = prev.subtractingReportingOverflow(next)
-                if result.overflow {
-                    print("Substraction error")
-                    exit(1)
-                }
-                total = prev - next
-            }
-        default:
-            exit(1)
-        }
-        if let total = total {
-            args[i+1] = String(total)
-            args[i] = "+"
-            args[i-1] = "0"
-        }
-    }
-}
-
-
-let result = Int(args[args.count-1])!
-print(result)
